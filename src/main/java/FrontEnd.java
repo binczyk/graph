@@ -5,8 +5,8 @@ import org.jgrapht.Graph;
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 public class FrontEnd extends JFrame {
 
@@ -21,19 +21,24 @@ public class FrontEnd extends JFrame {
         new FrontEnd();
         final mxGraph graph = new mxGraph();
         Object parent = graph.getDefaultParent();
-        Set<Object> vertexs = new HashSet<>();
+        Map<String, Object> vertexs = new HashMap<>();
         graph.getModel().beginUpdate();
         try {
             for (Object vertex : simpleGraph.vertexSet()) {
                 if (vertex instanceof String) {
-                    vertexs.add(graph.insertVertex(parent, null, vertex, Math.round(Math.random() * WIDTH / 2), Math.round(Math.random() * HEIGHT / 2), 80, 30));
+                    vertexs.put((String) vertex, graph.insertVertex(parent, null, vertex, Math.round(Math.random() * WIDTH / 2), Math.round(Math.random() * HEIGHT / 2), 30, 30));
                 } else {
                     System.console().writer().print(vertex + " is not a String");
                 }
             }
+            for (Object edge : simpleGraph.edgeSet()) {
+                if (edge instanceof DefaultWeightedEdgeCustom) {
+                    graph.insertEdge(parent, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(),
+                            vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()), vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
+                }
+            }
 
 
-           // graph.insertEdge(parent, null, "Edge", v1, v2);
         } finally {
             graph.getModel().endUpdate();
         }

@@ -1,7 +1,6 @@
 import org.jgrapht.Graph;
 import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
-import org.jgrapht.graph.DefaultWeightedEdge;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -13,7 +12,7 @@ import java.util.ArrayList;
 
 class Johnson {
     public static void main(String[] args) {
-        Graph<String, DefaultWeightedEdge> graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdge.class);
+        Graph<String, DefaultWeightedEdgeCustom> graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdgeCustom.class);
 
         JSONParser jsonParser = new JSONParser();
         try {
@@ -25,7 +24,7 @@ class Johnson {
 
             for (Object o : (ArrayList) data.get("edge")) {
                 if (checkIfcanBeParesd(o)) {
-                    DefaultWeightedEdge defaultWeightedEdge = graph.addEdge((String) ((JSONObject) o).get("start"), (String) ((JSONObject) o).get("end"));
+                    DefaultWeightedEdgeCustom defaultWeightedEdge = graph.addEdge((String) ((JSONObject) o).get("start"), (String) ((JSONObject) o).get("end"));
                     String waight = (String) ((JSONObject) o).get("weight");
                     try {
                         graph.setEdgeWeight(defaultWeightedEdge, Double.valueOf(waight));
@@ -35,10 +34,9 @@ class Johnson {
                 }
             }
 
-          //  FrontEnd frontEnd = new FrontEnd(graph);
-
+            FrontEnd frontEnd = new FrontEnd(graph);
             JohnsonShortestPaths johnsonShortestPaths = new JohnsonShortestPaths(graph, String.class);
-            ShortestPathAlgorithm.SingleSourcePaths<DefaultWeightedEdge, String> paths = johnsonShortestPaths.getPaths("B");
+            ShortestPathAlgorithm.SingleSourcePaths<DefaultWeightedEdgeCustom, String> paths = johnsonShortestPaths.getPaths("B");
             paths.getGraph();
         } catch (IOException | ParseException e) {
             e.printStackTrace();
