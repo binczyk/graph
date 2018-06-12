@@ -6,6 +6,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,8 +17,8 @@ class Johnson {
 
         JSONParser jsonParser = new JSONParser();
         try {
-            JSONObject data = (JSONObject) jsonParser.parse(new FileReader("F:\\projekty\\graphs\\src\\main\\resources\\graphA.json"));
-
+            File file = new File(".\\src\\main\\resources\\graphA.json");
+            JSONObject data = (JSONObject) jsonParser.parse(new FileReader(file));
             for (Object o : (ArrayList) data.get("vertex")) {
                 graph.addVertex((String) ((JSONObject) o).get("name"));
             }

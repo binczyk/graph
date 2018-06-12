@@ -1,10 +1,16 @@
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
+import javafx.event.ActionEvent;
+import javafx.stage.FileChooser;
 import org.jgrapht.Graph;
 
 import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,8 +39,8 @@ public class FrontEnd extends JFrame {
             }
             for (Object edge : simpleGraph.edgeSet()) {
                 if (edge instanceof DefaultWeightedEdgeCustom) {
-                    graph.insertEdge(parent, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(),
-                            vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()), vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
+                    graph.insertEdge(parent, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
+                                     vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
                 }
             }
 
@@ -61,13 +67,41 @@ public class FrontEnd extends JFrame {
     private void launch() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(WIDTH, HEIGHT);
+        addMenu(this);
         setVisible(true);
+
     }
 
     public static void main(String[] args) {
         FrontEnd frame = new FrontEnd();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(800, 600);
+        addMenu(frame);
         frame.setVisible(true);
+    }
+
+    private static void addMenu(FrontEnd frame) {
+        JMenuBar menuBar = new JMenuBar();
+        JMenuItem importGraph = new JMenuItem("Import");
+        configureAction(importGraph);
+        JMenuItem runJohnson = new JMenuItem("Run algorithm");
+        JMenu menu = new JMenu("Options");
+        menu.add(importGraph);
+        menu.add(runJohnson);
+        menuBar.add(menu);
+        frame.setJMenuBar(menuBar);
+    }
+
+    private static void configureAction(JMenuItem importGraph) {
+        importGraph.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                JFileChooser importFile = new JFileChooser();
+                importFile.setDialogTitle("Wybierz plik");
+                importFile.showOpenDialog(importGraph);
+                File newGraph = importFile.getSelectedFile();
+                System.out.println(newGraph);
+            }
+        });
     }
 }
