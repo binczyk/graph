@@ -1,5 +1,5 @@
 import org.jgrapht.Graph;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm.SingleSourcePaths;
 import org.jgrapht.alg.shortestpath.JohnsonShortestPaths;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.json.simple.JSONObject;
@@ -46,10 +46,10 @@ class Johnson {
         }
     }
 
-    public static void execute(Graph<String, DefaultWeightedEdgeCustom> graph) {
+    public static SingleSourcePaths execute(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
+        BellmanFord.execute(graph);
         JohnsonShortestPaths johnsonShortestPaths = new JohnsonShortestPaths(graph, String.class);
-        ShortestPathAlgorithm.SingleSourcePaths<DefaultWeightedEdgeCustom, String> paths = johnsonShortestPaths.getPaths("B");
-        paths.getGraph();
+        return johnsonShortestPaths.getPaths(startVertex);
     }
 
     private static Boolean checkIfcanBeParesd(Object o) {

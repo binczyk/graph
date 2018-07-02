@@ -2,8 +2,10 @@ import com.mxgraph.layout.mxOrganicLayout;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
 import org.jgrapht.Graph;
+import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 
 import javax.swing.*;
+import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -15,10 +17,11 @@ public class FrontEnd extends JFrame {
 
     private final int WIDTH = 800;
     private final int HEIGHT = 600;
-    private Graph simpleGraph;
-    private mxGraph graph;
+    private Graph jonhsonGraph;
+    private mxGraph graphUI;
     private Object parent;
     private Map<String, Object> vertexs;
+    private String selectedVertex;
 
     public FrontEnd() {
         super("Algorytm jonhsona");
@@ -33,33 +36,33 @@ public class FrontEnd extends JFrame {
 
     private void refrash(File file) {
         init();
-        simpleGraph = Johnson.createGraph(file);
-        graph.getModel().beginUpdate();
+        jonhsonGraph = Johnson.createGraph(file);
+        graphUI.getModel().beginUpdate();
         try {
-            for (Object vertex : simpleGraph.vertexSet()) {
+            for (Object vertex : jonhsonGraph.vertexSet()) {
                 if (vertex instanceof String) {
-                    vertexs.put((String) vertex, graph.insertVertex(parent, null, vertex, 0, 0, 30, 30));
+                    vertexs.put((String) vertex, graphUI.insertVertex(parent, null, vertex, 0, 0, 30, 30));
                 } else {
                     System.console().writer().print(vertex + " is not a String");
                 }
             }
-            for (Object edge : simpleGraph.edgeSet()) {
+            for (Object edge : jonhsonGraph.edgeSet()) {
                 if (edge instanceof DefaultWeightedEdgeCustom) {
-                    graph.insertEdge(parent, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
-                                     vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
+                    graphUI.insertEdge(parent, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
+                                       vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
                 }
             }
 
 
         } finally {
-            graph.getModel().endUpdate();
+            graphUI.getModel().endUpdate();
         }
 
-        final mxGraphComponent graphComponent = new mxGraphComponent(graph);
-        mxOrganicLayout layout = new mxOrganicLayout(graph);
+        final mxGraphComponent graphComponent = new mxGraphComponent(graphUI);
+        mxOrganicLayout layout = new mxOrganicLayout(graphUI);
         layout.setFineTuning(true);
         layout.setEdgeLengthCostFactor(0.00001D);
-        layout.execute(graph.getDefaultParent());
+        layout.execute(graphUI.getDefaultParent());
         getContentPane().add(graphComponent);
         graphComponent.zoomAndCenter();
         graphComponent.refresh();
@@ -67,7 +70,8 @@ public class FrontEnd extends JFrame {
             public void mouseReleased(MouseEvent e) {
                 Object cell = graphComponent.getCellAt(e.getX(), e.getY());
                 if (cell != null) {
-                    System.out.println("cell=" + graph.getLabel(cell));
+                    System.out.println("cell=" + graphUI.getLabel(cell));
+                    selectedVertex = graphUI.getLabel(cell);
                 }
             }
         });
@@ -76,8 +80,8 @@ public class FrontEnd extends JFrame {
     }
 
     private void init() {
-        graph = new mxGraph();
-        parent = graph.getDefaultParent();
+        graphUI = new mxGraph();
+        parent = graphUI.getDefaultParent();
         vertexs = new HashMap<>();
     }
 
@@ -93,8 +97,9 @@ public class FrontEnd extends JFrame {
     private void addMenu(FrontEnd frame) {
         JMenuBar menuBar = new JMenuBar();
         JMenuItem importGraph = new JMenuItem("Import");
-        configureAction(importGraph);
+        configureImport(importGraph);
         JMenuItem runJohnson = new JMenuItem("Run algorithm");
+        configureAlgorithm(runJohnson);
         JMenu menu = new JMenu("Options");
         menu.add(importGraph);
         menu.add(runJohnson);
@@ -102,7 +107,23 @@ public class FrontEnd extends JFrame {
         frame.setJMenuBar(menuBar);
     }
 
-    private void configureAction(JMenuItem importGraph) {
+    private void configureAlgorithm(JMenuItem runJohnson) {
+        runJohnson.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (selectedVertex != null && !selectedVertex.isEmpty()) {
+                    ShortestPathAlgorithm.SingleSourcePaths<DefaultWeightedEdgeCustom, String> paths = Johnson.execute(jonhsonGraph, selectedVertex);
+                    System.out.println("Johnson.execute(jonhsonGraph)");
+                } else {
+                    final JPanel woringPanel = new JPanel();
+                    JOptionPane.showMessageDialog(woringPanel, "Nie wybrano wierzchołka", "Warning", JOptionPane.WARNING_MESSAGE);
+                }
+
+            }
+        });
+    }
+
+    private void configureImport(JMenuItem importGraph) {
         importGraph.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
