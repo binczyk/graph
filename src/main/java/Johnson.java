@@ -47,7 +47,7 @@ class Johnson {
     }
 
     public static SingleSourcePaths execute(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
-        BellmanFord.execute(graph);
+        BellmanFord.execute(graph, startVertex);
         JohnsonShortestPaths johnsonShortestPaths = new JohnsonShortestPaths(graph, String.class);
         return johnsonShortestPaths.getPaths(startVertex);
     }

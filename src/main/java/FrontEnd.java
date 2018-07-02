@@ -15,8 +15,8 @@ import java.util.Map;
 
 public class FrontEnd extends JFrame {
 
-    private final int WIDTH = 800;
-    private final int HEIGHT = 600;
+    private final static int WIDTH = 800;
+    private final static int HEIGHT = 600;
     private Graph jonhsonGraph;
     private mxGraph graphUI;
     private Object parent;
@@ -24,14 +24,13 @@ public class FrontEnd extends JFrame {
     private String selectedVertex;
 
     public FrontEnd() {
-        super("Algorytm jonhsona");
+        super("Algorytm Jonhsona");
         File file = new File(".\\src\\main\\resources\\graphA.json");
         refrash(file);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
         setSize(WIDTH, HEIGHT);
         setLocationRelativeTo(null);
-        setVisible(true);
     }
 
     private void refrash(File file) {
@@ -49,7 +48,7 @@ public class FrontEnd extends JFrame {
             for (Object edge : jonhsonGraph.edgeSet()) {
                 if (edge instanceof DefaultWeightedEdgeCustom) {
                     graphUI.insertEdge(parent, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
-                                       vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
+                            vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
                 }
             }
 

@@ -53,6 +53,11 @@
       "weight": "-5"
     },
     {
+      "start": "D",
+      "end": "A",
+      "weight": "2"
+    },
+    {
       "start": "E",
       "end": "D",
       "weight": "6"
