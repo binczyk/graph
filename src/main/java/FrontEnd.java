@@ -2,7 +2,6 @@ import com.mxgraph.layout.mxOrganicLayout;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
 import org.jgrapht.Graph;
-import org.jgrapht.alg.interfaces.ShortestPathAlgorithm;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -107,11 +106,12 @@ public class FrontEnd extends JFrame {
     }
 
     private void configureAlgorithm(JMenuItem runJohnson) {
+        Double[][] shortestPaths;
         runJohnson.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (selectedVertex != null && !selectedVertex.isEmpty()) {
-                    ShortestPathAlgorithm.SingleSourcePaths<DefaultWeightedEdgeCustom, String> paths = Johnson.execute(jonhsonGraph, selectedVertex);
+                    Johnson.execute(jonhsonGraph, selectedVertex);
                     System.out.println("Johnson.execute(jonhsonGraph)");
                 } else {
                     final JPanel woringPanel = new JPanel();

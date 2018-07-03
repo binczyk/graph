@@ -9,12 +9,15 @@ public class BellmanFord {
     private static Map<String, String> previous = new HashMap<>();
     private static final String additionalVertex = "#";
 
-    public static void execute(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
+    public static Map<String, Double> execute(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
+        graph = createNewGraph(graph);
         initDistanceAndPrevList(graph, startVertex);
         relax(graph);
+        checkCycle(graph);
+        return distance;
     }
 
-    private static void createNewGraph(Graph<String, DefaultWeightedEdgeCustom> graph) {
+    private static Graph<String, DefaultWeightedEdgeCustom> createNewGraph(Graph<String, DefaultWeightedEdgeCustom> graph) {
         graph.addVertex(additionalVertex);
         for (String vertex : graph.vertexSet()) {
             if (!vertex.equalsIgnoreCase(additionalVertex)) {
@@ -22,6 +25,7 @@ public class BellmanFord {
                 graph.setEdgeWeight(edge, 0D);
             }
         }
+        return graph;
     }
 
     private static Graph<String, DefaultWeightedEdgeCustom> removeAdditionalVertex(Graph<String, DefaultWeightedEdgeCustom> graph) {
@@ -32,7 +36,7 @@ public class BellmanFord {
     private static void initDistanceAndPrevList(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
         for (String vertex : graph.vertexSet()) {
             distance.put(vertex, Double.MAX_VALUE);
-            previous.put(vertex, "###");
+            previous.put(vertex, "$$$");
         }
         distance.put(startVertex, 0D);
     }
@@ -41,17 +45,25 @@ public class BellmanFord {
         for (int i = 0; i < graph.vertexSet().size(); i++) {
             for (DefaultWeightedEdgeCustom edge : graph.edgeSet()) {
                 if (checkIfNewWaightIsless(edge)) {
-                    distance.put(edge.getSourceCustom().toString(), distance.get(edge.getTargetCustom().toString()) + Double.valueOf(edge.getWeightCustom()));
+                    distance.put(edge.getTargetCustom().toString(), distance.get(edge.getSourceCustom().toString()) + Double.valueOf(edge.getWeightCustom()));
                     previous.put(edge.getSourceCustom().toString(), edge.getTargetCustom().toString());
                 }
             }
         }
     }
 
-    private static boolean checkIfNewWaightIsless(DefaultWeightedEdgeCustom edge) {
-        return distance.get(edge.getSourceCustom().toString()) >
-                distance.get(edge.getTargetCustom().toString()) + Double.valueOf(edge.getWeightCustom());
+    private static void checkCycle(Graph<String, DefaultWeightedEdgeCustom> graph) {
+        for (int i = 0; i < graph.vertexSet().size(); i++) {
+            for (DefaultWeightedEdgeCustom edge : graph.edgeSet()) {
+                if (checkIfNewWaightIsless(edge)) {
+                    System.out.println("Graph has negative cycle");
+                }
+            }
+        }
     }
 
+    private static boolean checkIfNewWaightIsless(DefaultWeightedEdgeCustom edge) {
+        return distance.get(edge.getTargetCustom().toString()) > distance.get(edge.getSourceCustom().toString()) + Double.valueOf(edge.getWeightCustom());
+    }
 }
 
