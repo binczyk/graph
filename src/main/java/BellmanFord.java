@@ -28,11 +28,6 @@ public class BellmanFord {
         return graph;
     }
 
-    private static Graph<String, DefaultWeightedEdgeCustom> removeAdditionalVertex(Graph<String, DefaultWeightedEdgeCustom> graph) {
-        graph.removeVertex(additionalVertex);
-        return graph;
-    }
-
     private static void initDistanceAndPrevList(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
         for (String vertex : graph.vertexSet()) {
             distance.put(vertex, Double.MAX_VALUE);
@@ -64,6 +59,10 @@ public class BellmanFord {
 
     private static boolean checkIfNewWaightIsless(DefaultWeightedEdgeCustom edge) {
         return distance.get(edge.getTargetCustom().toString()) > distance.get(edge.getSourceCustom().toString()) + Double.valueOf(edge.getWeightCustom());
+    }
+
+    public static String getAdditionalVertex() {
+        return additionalVertex;
     }
 }
 

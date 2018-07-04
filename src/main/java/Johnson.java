@@ -8,9 +8,25 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 class Johnson {
+
+    public static Map<String, DijkstraResult> execute(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
+        Map<String, Double> BFdistance = BellmanFord.execute(graph, startVertex);
+        Graph<String, DefaultWeightedEdgeCustom> newGraph = removeAdditionalVertex(graph);
+        newGraph = reweightGraph(newGraph, BFdistance);
+        return runDijkstraForAllVertex(newGraph);
+    }
+
+    private static Map<String, DijkstraResult> runDijkstraForAllVertex(Graph<String, DefaultWeightedEdgeCustom> graph) {
+        Map<String, DijkstraResult> allPairsPath = new HashMap<>();
+        for (String vertex : graph.vertexSet()) {
+            allPairsPath.put(vertex, Dijkstra.execte(graph, vertex));
+        }
+        return allPairsPath;
+    }
 
     public static Graph createGraph(File jsnoWithGraph) {
         Graph<String, DefaultWeightedEdgeCustom> graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdgeCustom.class);
@@ -46,21 +62,14 @@ class Johnson {
         }
     }
 
-    public static Double[][] execute(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
-        Map<String, Double> BFdistance = BellmanFord.execute(graph, startVertex);
-        Graph<String, DefaultWeightedEdgeCustom> newGraph = reweightGraph(graph, BFdistance);
-
-        return new Double[graph.vertexSet().size()][graph.vertexSet().size()];
-    }
-
     private static Graph<String, DefaultWeightedEdgeCustom> reweightGraph(Graph<String, DefaultWeightedEdgeCustom> graph, Map<String, Double> distance) {
         Graph<String, DefaultWeightedEdgeCustom> newGraph = graph;
         for (String source : graph.vertexSet()) {
             for (String dest : graph.vertexSet()) {
-
-                //todo: przetestować czy to działa!!!
-                newGraph.setEdgeWeight(newGraph.addEdge(source, dest), newWeight(source, dest, graph, distance));
-
+                DefaultWeightedEdgeCustom defaultWeightedEdge = graph.getEdge(source, dest);
+                if (defaultWeightedEdge != null) {
+                    newGraph.setEdgeWeight(defaultWeightedEdge, newWeight(source, dest, graph, distance));
+                }
             }
         }
         return newGraph;
@@ -75,4 +84,22 @@ class Johnson {
         return ((JSONObject) o).get("start") instanceof String && ((JSONObject) o).get("end") instanceof String && ((JSONObject) o).get("weight") instanceof String;
 
     }
+
+    private static Graph<String, DefaultWeightedEdgeCustom> removeAdditionalVertex(Graph<String, DefaultWeightedEdgeCustom> graph) {
+        graph.removeVertex(BellmanFord.getAdditionalVertex());
+        return graph;
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+

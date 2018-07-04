@@ -1,6 +1,9 @@
 import com.mxgraph.layout.mxOrganicLayout;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TableView;
 import org.jgrapht.Graph;
 
 import javax.swing.*;
@@ -10,6 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class FrontEnd extends JFrame {
@@ -21,6 +25,8 @@ public class FrontEnd extends JFrame {
     private Object parent;
     private Map<String, Object> vertexs;
     private String selectedVertex;
+    private TableView tableView = new TableView();
+
 
     public FrontEnd() {
         super("Algorytm Jonhsona");
@@ -47,7 +53,7 @@ public class FrontEnd extends JFrame {
             for (Object edge : jonhsonGraph.edgeSet()) {
                 if (edge instanceof DefaultWeightedEdgeCustom) {
                     graphUI.insertEdge(parent, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
-                            vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
+                                       vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
                 }
             }
 
@@ -111,15 +117,36 @@ public class FrontEnd extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (selectedVertex != null && !selectedVertex.isEmpty()) {
-                    Johnson.execute(jonhsonGraph, selectedVertex);
-                    System.out.println("Johnson.execute(jonhsonGraph)");
+                    printTableWithResult();
                 } else {
                     final JPanel woringPanel = new JPanel();
                     JOptionPane.showMessageDialog(woringPanel, "Nie wybrano wierzchołka", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
-
             }
         });
+    }
+
+    private void printTableWithResult() {
+        Map<String, DijkstraResult> result = Johnson.execute(jonhsonGraph, selectedVertex);
+        addColumn(result);
+        addResult(result);
+        System.out.println("Johnson.execute(jonhsonGraph)");
+    }
+
+    private void addColumn(Map<String, DijkstraResult> result) {
+        tableView.getColumns().addAll("Vertex");
+        tableView.getColumns().addAll(result.keySet());
+    }
+
+    private void addResult(Map<String, DijkstraResult> result) {
+        ObservableList<String> values = FXCollections.observableArrayList();
+        Iterator iterator = result.entrySet().iterator();
+        while (iterator.hasNext()) {
+            //todo: Doończyć wypisywanie tabeli z wynikiem
+            Map.Entry map = (Map.Entry) iterator.next();
+            values.add((String) map.getKey());
+        }
+        tableView.setItems(values);
     }
 
     private void configureImport(JMenuItem importGraph) {
