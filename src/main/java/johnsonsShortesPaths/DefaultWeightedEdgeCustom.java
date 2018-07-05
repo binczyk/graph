@@ -1,3 +1,5 @@
+package johnsonsShortesPaths;
+
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 public class DefaultWeightedEdgeCustom extends DefaultWeightedEdge {

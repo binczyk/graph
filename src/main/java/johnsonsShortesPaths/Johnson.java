@@ -1,3 +1,5 @@
+package johnsonsShortesPaths;
+
 import org.jgrapht.Graph;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.json.simple.JSONObject;
@@ -13,10 +15,13 @@ import java.util.Map;
 
 class Johnson {
 
+    private Johnson() {
+    }
+
     public static Map<String, DijkstraResult> execute(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
         Map<String, Double> BFdistance = BellmanFord.execute(graph, startVertex);
         Graph<String, DefaultWeightedEdgeCustom> newGraph = removeAdditionalVertex(graph);
-        newGraph = reweightGraph(newGraph, BFdistance);
+        reweightGraph(newGraph, BFdistance);
         return runDijkstraForAllVertex(newGraph);
     }
 

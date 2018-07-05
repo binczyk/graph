@@ -1,3 +1,5 @@
+package johnsonsShortesPaths;
+
 import org.jgrapht.Graph;
 
 import java.util.ArrayList;
@@ -7,6 +9,9 @@ class Dijkstra {
 
     private static DijkstraResult dijkstraResult = new DijkstraResult();
     private static List<String> vertices = new ArrayList<>();
+
+    private Dijkstra() {
+    }
 
     public static DijkstraResult execte(Graph<String, DefaultWeightedEdgeCustom> graph, String vertex) {
         initAdditionals(graph, vertex);
@@ -37,12 +42,10 @@ class Dijkstra {
 
     private static void checkNeighbours(String cheapestVertex, Graph<String, DefaultWeightedEdgeCustom> graph) {
         for (String destVertex : graph.vertexSet()) {
-            if (vertices.contains(destVertex) && graph.getEdge(cheapestVertex, destVertex) != null) {
-                if (checkIfNewCostIsLower(cheapestVertex, graph, destVertex)) {
-                    dijkstraResult.getDistance().put(destVertex, dijkstraResult.getDistance().get(cheapestVertex) +
-                                                                 Double.parseDouble(graph.getEdge(cheapestVertex, destVertex).getWeightCustom()));
-                    dijkstraResult.getPredecessors().put(destVertex, cheapestVertex);
-                }
+            if (vertices.contains(destVertex) && graph.getEdge(cheapestVertex, destVertex) != null && checkIfNewCostIsLower(cheapestVertex, graph, destVertex)) {
+                dijkstraResult.getDistance()
+                              .put(destVertex, dijkstraResult.getDistance().get(cheapestVertex) + Double.parseDouble(graph.getEdge(cheapestVertex, destVertex).getWeightCustom()));
+                dijkstraResult.getPredecessors().put(destVertex, cheapestVertex);
             }
         }
     }
@@ -74,7 +77,9 @@ class Dijkstra {
     private static void initVertexList(Graph<String, DefaultWeightedEdgeCustom> graph) {
         for (String vertex : graph.vertexSet()) {
             vertices.add(vertex);
-            dijkstraResult.getVertices().add(vertex);
+            if (!dijkstraResult.getVertices().contains(vertex)) {
+                dijkstraResult.getVertices().add(vertex);
+            }
         }
     }
 }

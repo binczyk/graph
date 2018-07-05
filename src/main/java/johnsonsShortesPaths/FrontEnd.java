@@ -1,9 +1,8 @@
+package johnsonsShortesPaths;
+
 import com.mxgraph.layout.mxOrganicLayout;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.control.TableView;
 import org.jgrapht.Graph;
 
 import javax.swing.*;
@@ -22,10 +21,10 @@ public class FrontEnd extends JFrame {
     private final static int HEIGHT = 600;
     private Graph jonhsonGraph;
     private mxGraph graphUI;
-    private Object parent;
+    private Object parentObject;
     private Map<String, Object> vertexs;
     private String selectedVertex;
-    private TableView tableView = new TableView();
+    private JTable tableView;
 
 
     public FrontEnd() {
@@ -45,14 +44,14 @@ public class FrontEnd extends JFrame {
         try {
             for (Object vertex : jonhsonGraph.vertexSet()) {
                 if (vertex instanceof String) {
-                    vertexs.put((String) vertex, graphUI.insertVertex(parent, null, vertex, 0, 0, 30, 30));
+                    vertexs.put((String) vertex, graphUI.insertVertex(parentObject, null, vertex, 0, 0, 30, 30));
                 } else {
                     System.console().writer().print(vertex + " is not a String");
                 }
             }
             for (Object edge : jonhsonGraph.edgeSet()) {
                 if (edge instanceof DefaultWeightedEdgeCustom) {
-                    graphUI.insertEdge(parent, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
+                    graphUI.insertEdge(parentObject, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
                                        vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
                 }
             }
@@ -71,6 +70,7 @@ public class FrontEnd extends JFrame {
         graphComponent.zoomAndCenter();
         graphComponent.refresh();
         graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
+            @Override
             public void mouseReleased(MouseEvent e) {
                 Object cell = graphComponent.getCellAt(e.getX(), e.getY());
                 if (cell != null) {
@@ -85,7 +85,7 @@ public class FrontEnd extends JFrame {
 
     private void init() {
         graphUI = new mxGraph();
-        parent = graphUI.getDefaultParent();
+        parentObject = graphUI.getDefaultParent();
         vertexs = new HashMap<>();
     }
 
@@ -112,15 +112,13 @@ public class FrontEnd extends JFrame {
     }
 
     private void configureAlgorithm(JMenuItem runJohnson) {
-        Double[][] shortestPaths;
         runJohnson.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (selectedVertex != null && !selectedVertex.isEmpty()) {
                     printTableWithResult();
                 } else {
-                    final JPanel woringPanel = new JPanel();
-                    JOptionPane.showMessageDialog(woringPanel, "Nie wybrano wierzchołka", "Warning", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(new JPanel(), "Nie wybrano wierzchołka", "Warning", JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
@@ -128,25 +126,59 @@ public class FrontEnd extends JFrame {
 
     private void printTableWithResult() {
         Map<String, DijkstraResult> result = Johnson.execute(jonhsonGraph, selectedVertex);
-        addColumn(result);
-        addResult(result);
+
+        String column[] = addColumn(result);
+        String data[][] = addResult(result, column);
+        buildResutWindow(column, data);
         System.out.println("Johnson.execute(jonhsonGraph)");
     }
 
-    private void addColumn(Map<String, DijkstraResult> result) {
-        tableView.getColumns().addAll("Vertex");
-        tableView.getColumns().addAll(result.keySet());
+    private void buildResutWindow(String[] column, String[][] data) {
+        tableView = new JTable(data, column);
+        tableView.setBounds(30, 40, 200, 300);
+        tableView.setDefaultEditor(Object.class, null);
+        JScrollPane sp = new JScrollPane(tableView);
+        JFrame resutFram = new JFrame();
+        resutFram.add(sp);
+        resutFram.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        resutFram.pack();
+        resutFram.setSize(WIDTH, HEIGHT);
+        resutFram.setLocationRelativeTo(null);
+        resutFram.setVisible(true);
     }
 
-    private void addResult(Map<String, DijkstraResult> result) {
-        ObservableList<String> values = FXCollections.observableArrayList();
-        Iterator iterator = result.entrySet().iterator();
-        while (iterator.hasNext()) {
-            //todo: Doończyć wypisywanie tabeli z wynikiem
-            Map.Entry map = (Map.Entry) iterator.next();
-            values.add((String) map.getKey());
+    private String[] addColumn(Map<String, DijkstraResult> result) {
+        String[] columns = new String[result.size() + 1];
+        columns[0] = "Vertex";
+        int i = 1;
+        for (String vertex : result.keySet()) {
+            columns[i] = vertex;
+            i++;
         }
-        tableView.setItems(values);
+
+        return columns;
+    }
+
+    private String[][] addResult(Map<String, DijkstraResult> result, String[] column) {
+        int columnNo = 0;
+        int row = 0;
+        String[][] data = new String[result.size()][result.size() + 2];
+        Iterator iterator = result.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Map.Entry map = (Map.Entry) iterator.next();
+            data[row][columnNo] = (String) map.getKey();
+            for (String vertex : column) {
+                String distance = String.valueOf(result.get(map.getKey()).getDistance().get(vertex));
+                if (!distance.equalsIgnoreCase("null")) {
+                    columnNo++;
+                    data[row][columnNo] = distance;
+                }
+            }
+            row++;
+            columnNo = 0;
+        }
+        return data;
     }
 
     private void configureImport(JMenuItem importGraph) {

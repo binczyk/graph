@@ -1,16 +1,21 @@
+package johnsonsShortesPaths;
+
 import org.jgrapht.Graph;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class BellmanFord {
+class BellmanFord {
 
     private static Map<String, Double> distance = new HashMap<>();
     private static Map<String, String> previous = new HashMap<>();
-    private static final String additionalVertex = "#";
+    private static final String ADDITIONAL_VERTEX = "#";
+
+    private BellmanFord() {
+    }
 
     public static Map<String, Double> execute(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
-        graph = createNewGraph(graph);
+        createNewGraph(graph);
         initDistanceAndPrevList(graph, startVertex);
         relax(graph);
         checkCycle(graph);
@@ -18,10 +23,10 @@ public class BellmanFord {
     }
 
     private static Graph<String, DefaultWeightedEdgeCustom> createNewGraph(Graph<String, DefaultWeightedEdgeCustom> graph) {
-        graph.addVertex(additionalVertex);
+        graph.addVertex(ADDITIONAL_VERTEX);
         for (String vertex : graph.vertexSet()) {
-            if (!vertex.equalsIgnoreCase(additionalVertex)) {
-                DefaultWeightedEdgeCustom edge = graph.addEdge(additionalVertex, vertex);
+            if (!vertex.equalsIgnoreCase(ADDITIONAL_VERTEX)) {
+                DefaultWeightedEdgeCustom edge = graph.addEdge(ADDITIONAL_VERTEX, vertex);
                 graph.setEdgeWeight(edge, 0D);
             }
         }
@@ -62,7 +67,7 @@ public class BellmanFord {
     }
 
     public static String getAdditionalVertex() {
-        return additionalVertex;
+        return ADDITIONAL_VERTEX;
     }
 }
 
