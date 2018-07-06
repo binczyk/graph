@@ -6,6 +6,7 @@ import com.mxgraph.view.mxGraph;
 import org.jgrapht.Graph;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -57,7 +58,7 @@ public class FrontEnd extends JFrame {
             for (Object edge : jonhsonGraph.edgeSet()) {
                 if (edge instanceof DefaultWeightedEdgeCustom) {
                     graphUI.insertEdge(parentObject, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
-                                       vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
+                            vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
                 }
             }
 
@@ -108,9 +109,9 @@ public class FrontEnd extends JFrame {
         JMenuBar menuBar = new JMenuBar();
         JMenuItem importGraph = new JMenuItem("Import");
         configureImport(importGraph);
-        JMenuItem runJohnson = new JMenuItem("Run algorithm");
+        JMenuItem runJohnson = new JMenuItem("Wykonaj algorytm");
         configureAlgorithm(runJohnson);
-        JMenu menu = new JMenu("Options");
+        JMenu menu = new JMenu("Opcje");
         menu.add(importGraph);
         menu.add(runJohnson);
         menuBar.add(menu);
@@ -129,71 +130,23 @@ public class FrontEnd extends JFrame {
     private void printTableWithResult() {
         Johnson johnson = new Johnson(jonhsonGraph);
         Map<String, DijkstraResult> result = johnson.execute();
+        JFrame resutFrame = new JFrame();
 
         String distanceColumn[] = addColumn(result);
         String distanceData[][] = addResult(result, distanceColumn, RESULT);
 
-        JFrame resutFrame = new JFrame();
         configureFrame(resutFrame);
-        buildWindow(distanceColumn, distanceData, resutFrame, distanceTableView);
+        buildWindow(distanceColumn, distanceData, resutFrame, distanceTableView, BorderLayout.NORTH);
 
         String predecessorsColumn[] = addColumn(result);
         String predecessorsData[][] = addResult(result, distanceColumn, PREDECESSOR);
 
-        buildWindow(predecessorsColumn, predecessorsData, resutFrame, predecesorsTableView);
+        buildWindow(predecessorsColumn, predecessorsData, resutFrame, predecesorsTableView, BorderLayout.CENTER);
         System.out.println("Johnson.execute(jonhsonGraph)");
     }
 
-    private String[][] addPredecesorsData(Map<String, DijkstraResult> result, String[] distanceColumn) {
-        int columnNo = 0;
-        int row = 0;
-        String[][] data = new String[result.size()][result.size() + 1];
-        Iterator iterator = result.entrySet().iterator();
-
-        while (iterator.hasNext()) {
-            Map.Entry map = (Map.Entry) iterator.next();
-            String key = (String) map.getKey();
-            data[row][columnNo] = key;
-
-            createPredecessorsList(result, key, key, data, row, columnNo);
-            row++;
-            columnNo = 0;
-        }
-        return data;
-
-    }
-
-    private void createPredecessorsList(Map<String, DijkstraResult> predList, String key, String startKey, String[][] data, int row, int column) {
-        String previous = findPrev(startKey, predList);
-        if (!predList.get(key).getPredecessors().get(previous).equalsIgnoreCase("$$$")) {
-            data[row][column] = previous;
-            column++;
-            createPredecessorsList(predList, key, previous, data, row, column);
-        }
-    }
-
-    private String findPrev(String key, Map<String, DijkstraResult> predList) {
-        DijkstraResult dijkstraResult = predList.get(key);
-        dijkstraResult.getPredecessors();
-        for (String vertex : dijkstraResult.getPredecessors().keySet()) {
-            if (dijkstraResult.getPredecessors().get(vertex).equalsIgnoreCase(key)) {
-                return vertex;
-            }
-        }
-        return "";
-    }
-
-    private String[] addPredecesorsColumn(Map<String, DijkstraResult> result) {
-        String[] column = new String[result.size()];
-
-        for (int i = 0; i < column.length; i++) {
-            column[i] = String.valueOf(i);
-        }
-
-        return column;
-    }
-
     private void configureFrame(JFrame resultFrame) {
+        resultFrame.setTitle("Wynik");
         resultFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         resultFrame.pack();
         resultFrame.setSize(WIDTH, HEIGHT);
@@ -201,17 +154,19 @@ public class FrontEnd extends JFrame {
         resultFrame.setVisible(true);
     }
 
-    private void buildWindow(String[] column, String[][] data, JFrame resultFrame, JTable tableView) {
+    private void buildWindow(String[] column, String[][] data, JFrame resultFrame, JTable tableView, String position) {
         tableView = new JTable(data, column);
         tableView.setDefaultEditor(Object.class, null);
+        tableView.setPreferredScrollableViewportSize(tableView.getPreferredSize());
+        tableView.setFillsViewportHeight(true);
         JScrollPane sp = new JScrollPane(tableView);
-        resultFrame.add(sp);
+        resultFrame.add(sp, position);
 
     }
 
     private String[] addColumn(Map<String, DijkstraResult> result) {
         String[] columns = new String[result.size() + 1];
-        columns[0] = "Vertex";
+        columns[0] = "Wierzchołek";
         int i = 1;
         for (String vertex : result.keySet()) {
             columns[i] = vertex;
@@ -234,7 +189,7 @@ public class FrontEnd extends JFrame {
                 String value = getValue(result, map, vertex, type);
                 if (!value.equalsIgnoreCase("null")) {
                     columnNo++;
-                    data[row][columnNo] = value;
+                    data[row][columnNo] = value.equalsIgnoreCase("$$$") ? "-" : value;
                 }
             }
             row++;
