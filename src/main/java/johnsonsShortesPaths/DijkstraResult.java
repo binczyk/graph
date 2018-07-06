@@ -10,6 +10,14 @@ class DijkstraResult {
     private Map<String, Double> distance = new HashMap<>();
     private Map<String, String> predecessors = new HashMap<>();
 
+    public DijkstraResult() {
+    }
+
+    public DijkstraResult(List<String> vertices, Map<String, String> predecessors) {
+        this.vertices = vertices;
+        this.predecessors = predecessors;
+    }
+
     public Map<String, Double> getDistance() {
         return distance;
     }

@@ -7,27 +7,29 @@ import java.util.List;
 
 class Dijkstra {
 
-    private static DijkstraResult dijkstraResult = new DijkstraResult();
-    private static List<String> vertices = new ArrayList<>();
+    private DijkstraResult dijkstraResult;
+    private List<String> vertices = new ArrayList<>();
+    private Graph<String, DefaultWeightedEdgeCustom> graph;
 
-    private Dijkstra() {
+    public Dijkstra(Graph<String, DefaultWeightedEdgeCustom> graph) {
+        this.graph = graph;
     }
 
-    public static DijkstraResult execte(Graph<String, DefaultWeightedEdgeCustom> graph, String vertex) {
+    public DijkstraResult execte(String vertex) {
+        dijkstraResult = new DijkstraResult();
         initAdditionals(graph, vertex);
         findPath(graph);
         return dijkstraResult;
     }
 
-    private static void findPath(Graph<String, DefaultWeightedEdgeCustom> graph) {
+    private void findPath(Graph<String, DefaultWeightedEdgeCustom> graph) {
         while (!vertices.isEmpty()) {
             String cheapestVertex = getCheapestVertex();
             checkNeighbours(cheapestVertex, graph);
-
         }
     }
 
-    private static String getCheapestVertex() {
+    private String getCheapestVertex() {
         Double cost = Double.MAX_VALUE;
         String cheapestVertex = "";
         for (String vertex : vertices) {
@@ -40,7 +42,7 @@ class Dijkstra {
         return cheapestVertex;
     }
 
-    private static void checkNeighbours(String cheapestVertex, Graph<String, DefaultWeightedEdgeCustom> graph) {
+    private void checkNeighbours(String cheapestVertex, Graph<String, DefaultWeightedEdgeCustom> graph) {
         for (String destVertex : graph.vertexSet()) {
             if (vertices.contains(destVertex) && graph.getEdge(cheapestVertex, destVertex) != null && checkIfNewCostIsLower(cheapestVertex, graph, destVertex)) {
                 dijkstraResult.getDistance()
@@ -50,31 +52,31 @@ class Dijkstra {
         }
     }
 
-    private static boolean checkIfNewCostIsLower(String cheapestVertex, Graph<String, DefaultWeightedEdgeCustom> graph, String destVertex) {
+    private boolean checkIfNewCostIsLower(String cheapestVertex, Graph<String, DefaultWeightedEdgeCustom> graph, String destVertex) {
         return dijkstraResult.getDistance().get(destVertex) >
                dijkstraResult.getDistance().get(cheapestVertex) + Double.parseDouble(graph.getEdge(cheapestVertex, destVertex).getWeightCustom());
     }
 
-    private static void initAdditionals(Graph<String, DefaultWeightedEdgeCustom> graph, String vertex) {
+    private void initAdditionals(Graph<String, DefaultWeightedEdgeCustom> graph, String vertex) {
         initCostsList(graph, vertex);
         initPredecesorsList(graph);
         initVertexList(graph);
     }
 
-    private static void initCostsList(Graph<String, DefaultWeightedEdgeCustom> graph, String sourceVertex) {
+    private void initCostsList(Graph<String, DefaultWeightedEdgeCustom> graph, String sourceVertex) {
         for (String vertex : graph.vertexSet()) {
             dijkstraResult.getDistance().put(vertex, Double.MAX_VALUE);
         }
         dijkstraResult.getDistance().put(sourceVertex, 0D);
     }
 
-    private static void initPredecesorsList(Graph<String, DefaultWeightedEdgeCustom> graph) {
+    private void initPredecesorsList(Graph<String, DefaultWeightedEdgeCustom> graph) {
         for (String vertex : graph.vertexSet()) {
             dijkstraResult.getPredecessors().put(vertex, "$$$");
         }
     }
 
-    private static void initVertexList(Graph<String, DefaultWeightedEdgeCustom> graph) {
+    private void initVertexList(Graph<String, DefaultWeightedEdgeCustom> graph) {
         for (String vertex : graph.vertexSet()) {
             vertices.add(vertex);
             if (!dijkstraResult.getVertices().contains(vertex)) {

@@ -15,25 +15,59 @@ import java.util.Map;
 
 class Johnson {
 
-    private Johnson() {
+    private Dijkstra dijkstra;
+    private BellmanFord bellmanFord = new BellmanFord();
+    private Graph<String, DefaultWeightedEdgeCustom> graph;
+
+    public Johnson(Graph<String, DefaultWeightedEdgeCustom> graph) {
+        this.graph = graph;
     }
 
-    public static Map<String, DijkstraResult> execute(Graph<String, DefaultWeightedEdgeCustom> graph, String startVertex) {
-        Map<String, Double> BFdistance = BellmanFord.execute(graph, startVertex);
-        Graph<String, DefaultWeightedEdgeCustom> newGraph = removeAdditionalVertex(graph);
-        reweightGraph(newGraph, BFdistance);
-        return runDijkstraForAllVertex(newGraph);
+    public Johnson() {
     }
 
-    private static Map<String, DijkstraResult> runDijkstraForAllVertex(Graph<String, DefaultWeightedEdgeCustom> graph) {
+    public Map<String, DijkstraResult> execute() {
+        Map<String, Double> bFdistance = bellmanFord.execute(graph);
+        reweightGraph(graph, bFdistance);
+        removeAdditionalVertex(graph);
+        Map<String, DijkstraResult> weightFunction = runDijkstraForAllVertex(graph);
+        return calculateShortestPath(weightFunction, bFdistance);
+    }
+
+    private Map<String, DijkstraResult> calculateShortestPath(Map<String, DijkstraResult> waightFunction, Map<String, Double> bFdistance) {
         Map<String, DijkstraResult> allPairsPath = new HashMap<>();
-        for (String vertex : graph.vertexSet()) {
-            allPairsPath.put(vertex, Dijkstra.execte(graph, vertex));
+        for (String vertex : waightFunction.keySet()) {
+            allPairsPath.put(vertex, calculateWeight(vertex, waightFunction, bFdistance));
         }
         return allPairsPath;
+
     }
 
-    public static Graph createGraph(File jsnoWithGraph) {
+    private DijkstraResult calculateWeight(String currentVertex, Map<String, DijkstraResult> waightFunction, Map<String, Double> bFdistance) {
+        DijkstraResult dijkstraResult = new DijkstraResult(waightFunction.get(currentVertex).getVertices(), waightFunction.get(currentVertex).getPredecessors());
+        for (String destVertex : waightFunction.get(currentVertex).getVertices()) {
+            dijkstraResult.getDistance().put(destVertex, calculate(currentVertex, waightFunction, bFdistance, destVertex));
+        }
+        return dijkstraResult;
+    }
+
+    private double calculate(String currentVertex, Map<String, DijkstraResult> waightFunction, Map<String, Double> bFdistance, String destVertex) {
+        Double weightSource = waightFunction.get(currentVertex).getDistance().get(destVertex);
+        Double bfSource = bFdistance.get(currentVertex);
+        Double bfDest = bFdistance.get(destVertex);
+        return weightSource - bfSource + bfDest;
+    }
+
+    private Map<String, DijkstraResult> runDijkstraForAllVertex(Graph<String, DefaultWeightedEdgeCustom> graph) {
+        dijkstra = new Dijkstra(graph);
+        Map<String, DijkstraResult> waightFunction = new HashMap<>();
+        for (String vertex : graph.vertexSet()) {
+            waightFunction.put(vertex, dijkstra.execte(vertex));
+        }
+        return waightFunction;
+    }
+
+    public Graph createGraph(File jsnoWithGraph) {
         Graph<String, DefaultWeightedEdgeCustom> graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdgeCustom.class);
 
         JSONParser jsonParser = new JSONParser();
@@ -47,7 +81,7 @@ class Johnson {
         return graph;
     }
 
-    private static void createEdges(Graph<String, DefaultWeightedEdgeCustom> graph, JSONObject data) {
+    private void createEdges(Graph<String, DefaultWeightedEdgeCustom> graph, JSONObject data) {
         for (Object o : (ArrayList) data.get("edge")) {
             if (checkIfcanBeParesd(o)) {
                 DefaultWeightedEdgeCustom defaultWeightedEdge = graph.addEdge((String) ((JSONObject) o).get("start"), (String) ((JSONObject) o).get("end"));
@@ -61,13 +95,13 @@ class Johnson {
         }
     }
 
-    private static void createVertex(Graph<String, DefaultWeightedEdgeCustom> graph, JSONObject data) {
+    private void createVertex(Graph<String, DefaultWeightedEdgeCustom> graph, JSONObject data) {
         for (Object o : (ArrayList) data.get("vertex")) {
             graph.addVertex((String) ((JSONObject) o).get("name"));
         }
     }
 
-    private static Graph<String, DefaultWeightedEdgeCustom> reweightGraph(Graph<String, DefaultWeightedEdgeCustom> graph, Map<String, Double> distance) {
+    private Graph<String, DefaultWeightedEdgeCustom> reweightGraph(Graph<String, DefaultWeightedEdgeCustom> graph, Map<String, Double> distance) {
         Graph<String, DefaultWeightedEdgeCustom> newGraph = graph;
         for (String source : graph.vertexSet()) {
             for (String dest : graph.vertexSet()) {
@@ -80,21 +114,19 @@ class Johnson {
         return newGraph;
     }
 
-    private static double newWeight(String source, String dest, Graph<String, DefaultWeightedEdgeCustom> graph, Map<String, Double> distance) {
+    private double newWeight(String source, String dest, Graph<String, DefaultWeightedEdgeCustom> graph, Map<String, Double> distance) {
         return Double.valueOf(graph.getEdge(source, dest).getWeightCustom()) + distance.get(source) - distance.get(dest);
     }
 
 
-    private static Boolean checkIfcanBeParesd(Object o) {
+    private Boolean checkIfcanBeParesd(Object o) {
         return ((JSONObject) o).get("start") instanceof String && ((JSONObject) o).get("end") instanceof String && ((JSONObject) o).get("weight") instanceof String;
 
     }
 
-    private static Graph<String, DefaultWeightedEdgeCustom> removeAdditionalVertex(Graph<String, DefaultWeightedEdgeCustom> graph) {
-        graph.removeVertex(BellmanFord.getAdditionalVertex());
-        return graph;
+    private void removeAdditionalVertex(Graph<String, DefaultWeightedEdgeCustom> graph) {
+        graph.removeVertex(bellmanFord.getAdditionalVertex());
     }
-
 }
 
 

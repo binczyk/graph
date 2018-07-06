@@ -39,7 +39,8 @@ public class FrontEnd extends JFrame {
 
     private void refrash(File file) {
         init();
-        jonhsonGraph = Johnson.createGraph(file);
+        Johnson johnson = new Johnson();
+        jonhsonGraph = johnson.createGraph(file);
         graphUI.getModel().beginUpdate();
         try {
             for (Object vertex : jonhsonGraph.vertexSet()) {
@@ -76,6 +77,7 @@ public class FrontEnd extends JFrame {
                 if (cell != null) {
                     System.out.println("cell=" + graphUI.getLabel(cell));
                     selectedVertex = graphUI.getLabel(cell);
+
                 }
             }
         });
@@ -115,17 +117,14 @@ public class FrontEnd extends JFrame {
         runJohnson.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (selectedVertex != null && !selectedVertex.isEmpty()) {
-                    printTableWithResult();
-                } else {
-                    JOptionPane.showMessageDialog(new JPanel(), "Nie wybrano wierzchołka", "Warning", JOptionPane.WARNING_MESSAGE);
-                }
+                printTableWithResult();
             }
         });
     }
 
     private void printTableWithResult() {
-        Map<String, DijkstraResult> result = Johnson.execute(jonhsonGraph, selectedVertex);
+        Johnson johnson = new Johnson(jonhsonGraph);
+        Map<String, DijkstraResult> result = johnson.execute();
 
         String column[] = addColumn(result);
         String data[][] = addResult(result, column);
