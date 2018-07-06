@@ -24,7 +24,8 @@ public class FrontEnd extends JFrame {
     private Object parentObject;
     private Map<String, Object> vertexs;
     private String selectedVertex;
-    private JTable tableView;
+    private JTable distanceTableView;
+    private JTable predecesorsTableView;
 
 
     public FrontEnd() {
@@ -126,24 +127,84 @@ public class FrontEnd extends JFrame {
         Johnson johnson = new Johnson(jonhsonGraph);
         Map<String, DijkstraResult> result = johnson.execute();
 
-        String column[] = addColumn(result);
-        String data[][] = addResult(result, column);
-        buildResutWindow(column, data);
+        String distanceColumn[] = addColumn(result);
+        String distanceData[][] = addResult(result, distanceColumn);
+
+        JFrame resutFrame = new JFrame();
+        configureFrame(resutFrame);
+        buildWindow(distanceColumn, distanceData, resutFrame, distanceTableView);
+
+        String predecessorsColumn[] = addPredecesorsColumn(result);
+        String predecessorsData[][] = addPredecesorsData(result, distanceColumn);
+
+        buildWindow(predecessorsColumn, predecessorsData, resutFrame, predecesorsTableView);
         System.out.println("Johnson.execute(jonhsonGraph)");
     }
 
-    private void buildResutWindow(String[] column, String[][] data) {
+    private String[][] addPredecesorsData(Map<String, DijkstraResult> result, String[] distanceColumn) {
+        int columnNo = 0;
+        int row = 0;
+        String[][] data = new String[result.size()][result.size() + 1];
+        Iterator iterator = result.entrySet().iterator();
+
+        while (iterator.hasNext()) {
+            Map.Entry map = (Map.Entry) iterator.next();
+            String key = (String) map.getKey();
+            data[row][columnNo] = key;
+
+            createPredecessorsList(result, key, data, row, columnNo);
+            row++;
+            columnNo = 0;
+        }
+        return data;
+
+    }
+
+    private void createPredecessorsList(Map<String, DijkstraResult> predList, String key, String[][] data, int row, int column) {
+        String previous = findPrev(key, predList);
+        if (!previous.equalsIgnoreCase("$$$")) {
+            data[row][column] = previous;
+            column++;
+            createPredecessorsList(predList, previous, data, row, column);
+        }
+    }
+
+    //todo do sprawdzenia czy to działą
+    private String findPrev(String key, Map<String, DijkstraResult> predList) {
+        DijkstraResult dijkstraResult = predList.get(key);
+        dijkstraResult.getPredecessors();
+        for (String vertex : dijkstraResult.getPredecessors().keySet()) {
+            if (dijkstraResult.getPredecessors().get(vertex).equalsIgnoreCase(key)) {
+                return vertex;
+            }
+        }
+        return "";
+    }
+
+    private String[] addPredecesorsColumn(Map<String, DijkstraResult> result) {
+        String[] column = new String[result.size()];
+
+        for (int i = 0; i < column.length; i++) {
+            column[i] = String.valueOf(i);
+        }
+
+        return column;
+    }
+
+    private void configureFrame(JFrame resultFrame) {
+        resultFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+        resultFrame.pack();
+        resultFrame.setSize(WIDTH, HEIGHT);
+        resultFrame.setLocationRelativeTo(null);
+        resultFrame.setVisible(true);
+    }
+
+    private void buildWindow(String[] column, String[][] data, JFrame resultFrame, JTable tableView) {
         tableView = new JTable(data, column);
-        tableView.setBounds(30, 40, 200, 300);
         tableView.setDefaultEditor(Object.class, null);
         JScrollPane sp = new JScrollPane(tableView);
-        JFrame resutFram = new JFrame();
-        resutFram.add(sp);
-        resutFram.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        resutFram.pack();
-        resutFram.setSize(WIDTH, HEIGHT);
-        resutFram.setLocationRelativeTo(null);
-        resutFram.setVisible(true);
+        resultFrame.add(sp);
+
     }
 
     private String[] addColumn(Map<String, DijkstraResult> result) {
