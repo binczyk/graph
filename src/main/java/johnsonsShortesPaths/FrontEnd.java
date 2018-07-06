@@ -14,6 +14,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class FrontEnd extends JFrame {
 
@@ -26,6 +27,8 @@ public class FrontEnd extends JFrame {
     private String selectedVertex;
     private JTable distanceTableView;
     private JTable predecesorsTableView;
+    private static final String RESULT = "RESULT";
+    private static final String PREDECESSOR = "PREDECESSOR";
 
 
     public FrontEnd() {
@@ -128,14 +131,14 @@ public class FrontEnd extends JFrame {
         Map<String, DijkstraResult> result = johnson.execute();
 
         String distanceColumn[] = addColumn(result);
-        String distanceData[][] = addResult(result, distanceColumn);
+        String distanceData[][] = addResult(result, distanceColumn, RESULT);
 
         JFrame resutFrame = new JFrame();
         configureFrame(resutFrame);
         buildWindow(distanceColumn, distanceData, resutFrame, distanceTableView);
 
-        String predecessorsColumn[] = addPredecesorsColumn(result);
-        String predecessorsData[][] = addPredecesorsData(result, distanceColumn);
+        String predecessorsColumn[] = addColumn(result);
+        String predecessorsData[][] = addResult(result, distanceColumn, PREDECESSOR);
 
         buildWindow(predecessorsColumn, predecessorsData, resutFrame, predecesorsTableView);
         System.out.println("Johnson.execute(jonhsonGraph)");
@@ -152,7 +155,7 @@ public class FrontEnd extends JFrame {
             String key = (String) map.getKey();
             data[row][columnNo] = key;
 
-            createPredecessorsList(result, key, data, row, columnNo);
+            createPredecessorsList(result, key, key, data, row, columnNo);
             row++;
             columnNo = 0;
         }
@@ -160,16 +163,15 @@ public class FrontEnd extends JFrame {
 
     }
 
-    private void createPredecessorsList(Map<String, DijkstraResult> predList, String key, String[][] data, int row, int column) {
-        String previous = findPrev(key, predList);
-        if (!previous.equalsIgnoreCase("$$$")) {
+    private void createPredecessorsList(Map<String, DijkstraResult> predList, String key, String startKey, String[][] data, int row, int column) {
+        String previous = findPrev(startKey, predList);
+        if (!predList.get(key).getPredecessors().get(previous).equalsIgnoreCase("$$$")) {
             data[row][column] = previous;
             column++;
-            createPredecessorsList(predList, previous, data, row, column);
+            createPredecessorsList(predList, key, previous, data, row, column);
         }
     }
 
-    //todo do sprawdzenia czy to działą
     private String findPrev(String key, Map<String, DijkstraResult> predList) {
         DijkstraResult dijkstraResult = predList.get(key);
         dijkstraResult.getPredecessors();
@@ -219,7 +221,7 @@ public class FrontEnd extends JFrame {
         return columns;
     }
 
-    private String[][] addResult(Map<String, DijkstraResult> result, String[] column) {
+    private String[][] addResult(Map<String, DijkstraResult> result, String[] column, String type) {
         int columnNo = 0;
         int row = 0;
         String[][] data = new String[result.size()][result.size() + 2];
@@ -229,16 +231,25 @@ public class FrontEnd extends JFrame {
             Map.Entry map = (Map.Entry) iterator.next();
             data[row][columnNo] = (String) map.getKey();
             for (String vertex : column) {
-                String distance = String.valueOf(result.get(map.getKey()).getDistance().get(vertex));
-                if (!distance.equalsIgnoreCase("null")) {
+                String value = getValue(result, map, vertex, type);
+                if (!value.equalsIgnoreCase("null")) {
                     columnNo++;
-                    data[row][columnNo] = distance;
+                    data[row][columnNo] = value;
                 }
             }
             row++;
             columnNo = 0;
         }
         return data;
+    }
+
+    private String getValue(Map<String, DijkstraResult> result, Entry map, String vertex, String type) {
+        if (type.equalsIgnoreCase(RESULT)) {
+            return String.valueOf(result.get(map.getKey()).getDistance().get(vertex));
+        } else if (type.equalsIgnoreCase(PREDECESSOR)) {
+            return String.valueOf(result.get(map.getKey()).getPredecessors().get(vertex));
+        }
+        return "";
     }
 
     private void configureImport(JMenuItem importGraph) {
