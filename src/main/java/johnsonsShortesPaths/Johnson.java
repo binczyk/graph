@@ -26,7 +26,7 @@ class Johnson {
     public Johnson() {
     }
 
-    public Map<String, DijkstraResult> execute() {
+    public Map<String, DijkstraResult> execute() throws NegativeCycleException {
         Map<String, Double> bFdistance = bellmanFord.execute(graph);
         reweightGraph(graph, bFdistance);
         removeAdditionalVertex(graph);

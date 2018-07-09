@@ -13,7 +13,7 @@ class BellmanFord {
     public BellmanFord() {
     }
 
-    public Map<String, Double> execute(Graph<String, DefaultWeightedEdgeCustom> graph) {
+    public Map<String, Double> execute(Graph<String, DefaultWeightedEdgeCustom> graph) throws NegativeCycleException {
         createNewGraph(graph);
         initDistanceAndPrevList(graph);
         relax(graph);
@@ -49,11 +49,11 @@ class BellmanFord {
         }
     }
 
-    private void checkCycle(Graph<String, DefaultWeightedEdgeCustom> graph) {
+    private void checkCycle(Graph<String, DefaultWeightedEdgeCustom> graph) throws NegativeCycleException {
         for (int i = 0; i < graph.vertexSet().size(); i++) {
             for (DefaultWeightedEdgeCustom edge : graph.edgeSet()) {
                 if (checkIfNewWaightIsless(edge)) {
-                    System.out.println("Graph has negative cycle");
+                    throw new NegativeCycleException();
                 }
             }
         }

@@ -21,10 +21,10 @@ public class FrontEnd extends JFrame {
 
     private final static int WIDTH = 800;
     private final static int HEIGHT = 600;
-    private Graph jonhsonGraph;
+    private Graph johnsonGraph;
     private mxGraph graphUI;
     private Object parentObject;
-    private Map<String, Object> vertexs;
+    private Map<String, Object> vertexes;
     private String selectedVertex;
     private JTable distanceTableView;
     private JTable predecesorsTableView;
@@ -38,40 +38,22 @@ public class FrontEnd extends JFrame {
         refrash(file);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
-        setSize(WIDTH, HEIGHT);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setUndecorated(true);
         setLocationRelativeTo(null);
     }
 
     private void refrash(File file) {
-        init();
         Johnson johnson = new Johnson();
-        jonhsonGraph = johnson.createGraph(file);
-        graphUI.getModel().beginUpdate();
-        try {
-            for (Object vertex : jonhsonGraph.vertexSet()) {
-                if (vertex instanceof String) {
-                    vertexs.put((String) vertex, graphUI.insertVertex(parentObject, null, vertex, 0, 0, 30, 30));
-                } else {
-                    System.console().writer().print(vertex + " is not a String");
-                }
-            }
-            for (Object edge : jonhsonGraph.edgeSet()) {
-                if (edge instanceof DefaultWeightedEdgeCustom) {
-                    graphUI.insertEdge(parentObject, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexs.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
-                            vertexs.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
-                }
-            }
+        johnsonGraph = johnson.createGraph(file);
+        addVertexesAndEdges();
 
-
-        } finally {
-            graphUI.getModel().endUpdate();
-        }
-
-        final mxGraphComponent graphComponent = new mxGraphComponent(graphUI);
+        mxGraphComponent graphComponent = new mxGraphComponent(graphUI);
         mxOrganicLayout layout = new mxOrganicLayout(graphUI);
         layout.setFineTuning(true);
         layout.setEdgeLengthCostFactor(0.00001D);
         layout.execute(graphUI.getDefaultParent());
+        getContentPane().removeAll();
         getContentPane().add(graphComponent);
         graphComponent.zoomAndCenter();
         graphComponent.refresh();
@@ -90,18 +72,34 @@ public class FrontEnd extends JFrame {
         launch();
     }
 
-    private void init() {
+    private void addVertexesAndEdges() {
+        vertexes = new HashMap<>();
         graphUI = new mxGraph();
+        graphUI.getModel().beginUpdate();
         parentObject = graphUI.getDefaultParent();
-        vertexs = new HashMap<>();
+        try {
+            for (Object vertex : johnsonGraph.vertexSet()) {
+                if (vertex instanceof String) {
+                    vertexes.put((String) vertex, graphUI.insertVertex(parentObject, null, vertex, 0, 0, 30, 30));
+                } else {
+                    System.console().writer().print(vertex + " is not a String");
+                }
+            }
+            for (Object edge : johnsonGraph.edgeSet()) {
+                if (edge instanceof DefaultWeightedEdgeCustom) {
+                    graphUI.insertEdge(parentObject, null, ((DefaultWeightedEdgeCustom) edge).getWeightCustom(), vertexes.get(((DefaultWeightedEdgeCustom) edge).getSourceCustom()),
+                                       vertexes.get(((DefaultWeightedEdgeCustom) edge).getTargetCustom()));
+                }
+            }
+        } finally {
+            graphUI.getModel().endUpdate();
+        }
     }
 
     private void launch() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(WIDTH, HEIGHT);
         addMenu(this);
         setVisible(true);
-
     }
 
 
@@ -128,21 +126,37 @@ public class FrontEnd extends JFrame {
     }
 
     private void printTableWithResult() {
-        Johnson johnson = new Johnson(jonhsonGraph);
-        Map<String, DijkstraResult> result = johnson.execute();
-        JFrame resutFrame = new JFrame();
+        Johnson johnson = new Johnson(johnsonGraph);
+        Map<String, DijkstraResult> result = getAllPaths(johnson);
+        if (result != null) {
+            JFrame resutFrame = new JFrame();
 
-        String distanceColumn[] = addColumn(result);
-        String distanceData[][] = addResult(result, distanceColumn, RESULT);
+            String distanceColumn[] = addColumn(result);
+            String distanceData[][] = addResult(result, distanceColumn, RESULT);
 
-        configureFrame(resutFrame);
-        buildWindow(distanceColumn, distanceData, resutFrame, distanceTableView, BorderLayout.NORTH);
+            configureFrame(resutFrame);
+            buildWindow(distanceColumn, distanceData, resutFrame, distanceTableView, BorderLayout.NORTH);
 
-        String predecessorsColumn[] = addColumn(result);
-        String predecessorsData[][] = addResult(result, distanceColumn, PREDECESSOR);
+            String predecessorsColumn[] = addColumn(result);
+            String predecessorsData[][] = addResult(result, distanceColumn, PREDECESSOR);
 
-        buildWindow(predecessorsColumn, predecessorsData, resutFrame, predecesorsTableView, BorderLayout.CENTER);
-        System.out.println("Johnson.execute(jonhsonGraph)");
+            buildWindow(predecessorsColumn, predecessorsData, resutFrame, predecesorsTableView, BorderLayout.CENTER);
+            System.out.println("Johnson.execute(jonhsonGraph)");
+        }
+    }
+
+    private Map<String, DijkstraResult> getAllPaths(Johnson johnson) {
+        try {
+            return johnson.execute();
+        } catch (NegativeCycleException e) {
+            printAlert(e);
+        }
+        return null;
+    }
+
+    private void printAlert(NegativeCycleException e) {
+        JPanel errJPanel = new JPanel();
+        JOptionPane.showMessageDialog(errJPanel, e.getMessage(), "błąd", JOptionPane.ERROR_MESSAGE);
     }
 
     private void configureFrame(JFrame resultFrame) {
