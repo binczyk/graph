@@ -22,10 +22,14 @@ class BellmanFord {
     }
 
     private Graph<String, DefaultWeightedEdgeCustom> createNewGraph(Graph<String, DefaultWeightedEdgeCustom> graph) {
+        DefaultWeightedEdgeCustom edge;
         graph.addVertex(ADDITIONAL_VERTEX);
         for (String vertex : graph.vertexSet()) {
             if (!vertex.equalsIgnoreCase(ADDITIONAL_VERTEX)) {
-                DefaultWeightedEdgeCustom edge = graph.addEdge(ADDITIONAL_VERTEX, vertex);
+                edge = graph.getEdge(ADDITIONAL_VERTEX, vertex);
+                if (edge == null) {
+                    edge = graph.addEdge(ADDITIONAL_VERTEX, vertex);
+                }
                 graph.setEdgeWeight(edge, 0D);
             }
         }

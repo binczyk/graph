@@ -1,6 +1,7 @@
 package johnsonsShortesPaths;
 
 import com.mxgraph.layout.mxOrganicLayout;
+import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
 import org.jgrapht.Graph;
@@ -46,6 +47,7 @@ public class FrontEnd extends JFrame {
     private void refrash(File file) {
         Johnson johnson = new Johnson();
         johnsonGraph = johnson.createGraph(file);
+        johnson.setGraph(johnsonGraph);
         addVertexesAndEdges();
 
         mxGraphComponent graphComponent = new mxGraphComponent(graphUI);
@@ -126,7 +128,7 @@ public class FrontEnd extends JFrame {
     }
 
     private void printTableWithResult() {
-        Johnson johnson = new Johnson(johnsonGraph);
+        Johnson johnson = updateGraph();
         Map<String, DijkstraResult> result = getAllPaths(johnson);
         if (result != null) {
             JFrame resutFrame = new JFrame();
@@ -145,8 +147,20 @@ public class FrontEnd extends JFrame {
         }
     }
 
+    private Johnson updateGraph() {
+        for (Object o : graphUI.getAllEdges(graphUI.getChildVertices(graphUI.getDefaultParent()))) {
+            if (o instanceof mxCell && ((mxCell) o).isEdge()) {
+                mxCell cell = (mxCell) o;
+                DefaultWeightedEdgeCustom defaultWeightedEdge = (DefaultWeightedEdgeCustom) johnsonGraph.getEdge(cell.getSource().getValue(), cell.getTarget().getValue());
+                johnsonGraph.setEdgeWeight(defaultWeightedEdge, Double.valueOf((String) cell.getValue()));
+            }
+        }
+        return new Johnson(johnsonGraph);
+    }
+
     private Map<String, DijkstraResult> getAllPaths(Johnson johnson) {
         try {
+            johnson.setGraph(johnsonGraph);
             return johnson.execute();
         } catch (NegativeCycleException e) {
             printAlert(e);

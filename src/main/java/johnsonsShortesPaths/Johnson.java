@@ -127,6 +127,10 @@ class Johnson {
     private void removeAdditionalVertex(Graph<String, DefaultWeightedEdgeCustom> graph) {
         graph.removeVertex(bellmanFord.getAdditionalVertex());
     }
+
+    public void setGraph(Graph<String, DefaultWeightedEdgeCustom> graph) {
+        this.graph = graph;
+    }
 }
 
 
