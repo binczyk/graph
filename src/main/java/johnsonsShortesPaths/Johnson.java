@@ -25,12 +25,21 @@ class Johnson {
     public Johnson() {
     }
 
-    public Map<String, DijkstraResult> execute() throws NegativeCycleException {
+    public Map<String, DijkstraResult> execute() throws NegativeCycleException, FreeVertexException {
+        checkIfThereAreFreeVertex();
         Map<String, Double> bFdistance = bellmanFord.execute(graph);
         reweightGraph(graph, bFdistance);
         removeAdditionalVertex(graph);
         Map<String, DijkstraResult> weightFunction = runDijkstraForAllVertex(graph);
         return calculateShortestPath(weightFunction, bFdistance);
+    }
+
+    private void checkIfThereAreFreeVertex() throws FreeVertexException {
+        for (String vertex : graph.vertexSet()) {
+            if (graph.degreeOf(vertex) == 0) {
+                throw new FreeVertexException();
+            }
+        }
     }
 
     private Map<String, DijkstraResult> calculateShortestPath(Map<String, DijkstraResult> waightFunction, Map<String, Double> bFdistance) {

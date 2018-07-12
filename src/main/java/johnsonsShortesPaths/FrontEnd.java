@@ -223,7 +223,7 @@ public class FrontEnd extends JFrame {
         try {
             johnson.setGraph(johnsonGraph);
             return johnson.execute();
-        } catch (NegativeCycleException e) {
+        } catch (NegativeCycleException | FreeVertexException e) {
             printAlert(e);
         }
         return null;
