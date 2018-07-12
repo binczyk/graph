@@ -13,7 +13,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,8 +40,8 @@ public class FrontEnd extends JFrame {
 
     public FrontEnd() {
         super("Algorytm Jonhsona");
-        File file = new File(".\\src\\main\\resources\\graphA.json");
-        refrash(file);
+        BufferedReader txtReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("graphA.json")));
+        refrash(txtReader);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         pack();
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -46,9 +49,9 @@ public class FrontEnd extends JFrame {
         setLocationRelativeTo(null);
     }
 
-    private void refrash(File file) {
+    private void refrash(BufferedReader bufferedReader) {
         Johnson johnson = new Johnson();
-        johnsonGraph = tryToCreateGraph(file, johnson);
+        johnsonGraph = tryToCreateGraph(bufferedReader, johnson);
         if (Objects.nonNull(johnsonGraph)) {
             johnson.setGraph(johnsonGraph);
             addVertexesAndEdges();
@@ -78,9 +81,9 @@ public class FrontEnd extends JFrame {
         }
     }
 
-    private Graph tryToCreateGraph(File file, Johnson johnson) {
+    private Graph tryToCreateGraph(BufferedReader bufferedReader, Johnson johnson) {
         try {
-            return johnson.createGraph(file);
+            return johnson.createGraph(bufferedReader);
         } catch (ParseException e) {
             JPanel errJPanel = new JPanel();
             JOptionPane.showMessageDialog(errJPanel, "Błąd pliku na pozycji: " + e.getPosition(), "błąd", JOptionPane.ERROR_MESSAGE);
@@ -300,7 +303,12 @@ public class FrontEnd extends JFrame {
                 JFileChooser importFile = new JFileChooser();
                 importFile.setDialogTitle("Wybierz plik");
                 importFile.showOpenDialog(importGraph);
-                File newGraph = importFile.getSelectedFile();
+                BufferedReader newGraph = null;
+                try {
+                    newGraph = new BufferedReader(new FileReader(importFile.getSelectedFile()));
+                } catch (FileNotFoundException e1) {
+                    printAlert(e1);
+                }
                 refrash(newGraph);
             }
         });

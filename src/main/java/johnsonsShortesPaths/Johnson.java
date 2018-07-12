@@ -6,8 +6,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.File;
-import java.io.FileReader;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,12 +66,12 @@ class Johnson {
         return waightFunction;
     }
 
-    public Graph createGraph(File jsnoWithGraph) throws ParseException {
+    public Graph createGraph(BufferedReader jsnoWithGraph) throws ParseException {
         Graph<String, DefaultWeightedEdgeCustom> graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdgeCustom.class);
 
         JSONParser jsonParser = new JSONParser();
         try {
-            JSONObject data = (JSONObject) jsonParser.parse(new FileReader(jsnoWithGraph));
+            JSONObject data = (JSONObject) jsonParser.parse(jsnoWithGraph);
             createVertex(graph, data);
             createEdges(graph, data);
         } catch (IOException e) {
