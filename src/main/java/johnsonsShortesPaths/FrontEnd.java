@@ -5,6 +5,7 @@ import com.mxgraph.model.mxCell;
 import com.mxgraph.swing.mxGraphComponent;
 import com.mxgraph.view.mxGraph;
 import org.jgrapht.Graph;
+import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 public class FrontEnd extends JFrame {
 
@@ -46,37 +48,63 @@ public class FrontEnd extends JFrame {
 
     private void refrash(File file) {
         Johnson johnson = new Johnson();
-        johnsonGraph = johnson.createGraph(file);
-        johnson.setGraph(johnsonGraph);
-        addVertexesAndEdges();
+        johnsonGraph = tryToCreateGraph(file, johnson);
+        if (Objects.nonNull(johnsonGraph)) {
+            johnson.setGraph(johnsonGraph);
+            addVertexesAndEdges();
 
-        mxGraphComponent graphComponent = new mxGraphComponent(graphUI);
-        mxOrganicLayout layout = new mxOrganicLayout(graphUI);
-        layout.setFineTuning(true);
-        layout.setEdgeLengthCostFactor(0.00001D);
-        layout.execute(graphUI.getDefaultParent());
-        getContentPane().removeAll();
-        getContentPane().add(graphComponent);
-        graphComponent.zoomAndCenter();
-        graphComponent.refresh();
-        graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                Object cell = graphComponent.getCellAt(e.getX(), e.getY());
-                if (cell != null) {
-                    System.out.println("cell=" + graphUI.getLabel(cell));
-                    selectedVertex = graphUI.getLabel(cell);
+            mxGraphComponent graphComponent = new mxGraphComponent(graphUI);
+            mxOrganicLayout layout = new mxOrganicLayout(graphUI);
+            layout.setFineTuning(true);
+            layout.setEdgeLengthCostFactor(0.00001D);
+            layout.execute(graphUI.getDefaultParent());
+            getContentPane().removeAll();
+            getContentPane().add(graphComponent);
+            graphComponent.zoomAndCenter();
+            graphComponent.refresh();
+            graphComponent.getGraphControl().addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    Object cell = graphComponent.getCellAt(e.getX(), e.getY());
+                    if (cell != null) {
+                        System.out.println("cell=" + graphUI.getLabel(cell));
+                        selectedVertex = graphUI.getLabel(cell);
 
+                    }
                 }
-            }
-        });
+            });
 
-        launch();
+            launch();
+        }
+    }
+
+    private Graph tryToCreateGraph(File file, Johnson johnson) {
+        try {
+            return johnson.createGraph(file);
+        } catch (ParseException e) {
+            JPanel errJPanel = new JPanel();
+            JOptionPane.showMessageDialog(errJPanel, "Błąd pliku na pozycji: " + e.getPosition(), "błąd", JOptionPane.ERROR_MESSAGE);
+        }
+        return null;
     }
 
     private void addVertexesAndEdges() {
         vertexes = new HashMap<>();
-        graphUI = new mxGraph();
+        graphUI = new mxGraph() {
+            @Override
+            public boolean isCellEditable(Object cell) {
+                if (cell != null) {
+                    if (cell instanceof mxCell) {
+                        mxCell myCell = (mxCell) cell;
+                        if (myCell.isVertex()) {
+                            return false;
+                        }
+                    }
+                }
+                return super.isCellSelectable(cell);
+            }
+        };
+        graphUI.setAllowDanglingEdges(false);
         graphUI.getModel().beginUpdate();
         parentObject = graphUI.getDefaultParent();
         try {
@@ -128,34 +156,64 @@ public class FrontEnd extends JFrame {
     }
 
     private void printTableWithResult() {
-        Johnson johnson = updateGraph();
-        Map<String, DijkstraResult> result = getAllPaths(johnson);
-        if (result != null) {
-            JFrame resutFrame = new JFrame();
+        Johnson johnson = tryToUpdateGraph();
+        if (Objects.nonNull(johnson)) {
+            Map<String, DijkstraResult> result = getAllPaths(johnson);
+            if (result != null) {
+                JFrame resutFrame = new JFrame();
 
-            String distanceColumn[] = addColumn(result);
-            String distanceData[][] = addResult(result, distanceColumn, RESULT);
+                String distanceColumn[] = addColumn(result);
+                String distanceData[][] = addResult(result, distanceColumn, RESULT);
 
-            configureFrame(resutFrame);
-            buildWindow(distanceColumn, distanceData, resutFrame, distanceTableView, BorderLayout.NORTH);
+                configureFrame(resutFrame);
+                buildWindow(distanceColumn, distanceData, resutFrame, distanceTableView, BorderLayout.NORTH);
 
-            String predecessorsColumn[] = addColumn(result);
-            String predecessorsData[][] = addResult(result, distanceColumn, PREDECESSOR);
+                String predecessorsColumn[] = addColumn(result);
+                String predecessorsData[][] = addResult(result, distanceColumn, PREDECESSOR);
 
-            buildWindow(predecessorsColumn, predecessorsData, resutFrame, predecesorsTableView, BorderLayout.CENTER);
-            System.out.println("Johnson.execute(jonhsonGraph)");
+                buildWindow(predecessorsColumn, predecessorsData, resutFrame, predecesorsTableView, BorderLayout.CENTER);
+                System.out.println("Johnson.execute(jonhsonGraph)");
+            }
         }
     }
 
-    private Johnson updateGraph() {
+    private Johnson tryToUpdateGraph() {
+        try {
+            return updateGraph();
+        } catch (EmptyEdgeWeightException e) {
+            printAlert(e);
+        }
+        return null;
+    }
+
+    private Johnson updateGraph() throws EmptyEdgeWeightException {
+        DefaultWeightedEdgeCustom defaultWeightedEdge;
         for (Object o : graphUI.getAllEdges(graphUI.getChildVertices(graphUI.getDefaultParent()))) {
-            if (o instanceof mxCell && ((mxCell) o).isEdge()) {
+            if (o instanceof mxCell && ((mxCell) o).isEdge() && ((mxCell) o).getTarget() != null) {
                 mxCell cell = (mxCell) o;
-                DefaultWeightedEdgeCustom defaultWeightedEdge = (DefaultWeightedEdgeCustom) johnsonGraph.getEdge(cell.getSource().getValue(), cell.getTarget().getValue());
-                johnsonGraph.setEdgeWeight(defaultWeightedEdge, Double.valueOf((String) cell.getValue()));
+                defaultWeightedEdge = (DefaultWeightedEdgeCustom) johnsonGraph.getEdge(cell.getSource().getValue(), cell.getTarget().getValue());
+                if (Objects.isNull(defaultWeightedEdge)) {
+                    defaultWeightedEdge = (DefaultWeightedEdgeCustom) johnsonGraph.addEdge(cell.getSource().getValue(), cell.getTarget().getValue());
+
+                }
+                String weight = (String) cell.getValue();
+                if (!weight.isEmpty()) {
+                    tryToSetNewWeight(defaultWeightedEdge, weight);
+                } else {
+                    throw new EmptyEdgeWeightException();
+                }
             }
         }
         return new Johnson(johnsonGraph);
+    }
+
+    private void tryToSetNewWeight(DefaultWeightedEdgeCustom defaultWeightedEdge, String weight) {
+        try {
+            johnsonGraph.setEdgeWeight(defaultWeightedEdge, Double.valueOf(weight));
+        } catch (NumberFormatException e) {
+
+            printAlert(new NumberFormatException(e.getMessage() + ". Graf obliczony ze starą wartością."));
+        }
     }
 
     private Map<String, DijkstraResult> getAllPaths(Johnson johnson) {
@@ -168,7 +226,7 @@ public class FrontEnd extends JFrame {
         return null;
     }
 
-    private void printAlert(NegativeCycleException e) {
+    private void printAlert(Exception e) {
         JPanel errJPanel = new JPanel();
         JOptionPane.showMessageDialog(errJPanel, e.getMessage(), "błąd", JOptionPane.ERROR_MESSAGE);
     }

@@ -67,7 +67,7 @@ class Johnson {
         return waightFunction;
     }
 
-    public Graph createGraph(File jsnoWithGraph) {
+    public Graph createGraph(File jsnoWithGraph) throws ParseException {
         Graph<String, DefaultWeightedEdgeCustom> graph = new SimpleDirectedWeightedGraph<>(DefaultWeightedEdgeCustom.class);
 
         JSONParser jsonParser = new JSONParser();
@@ -75,7 +75,7 @@ class Johnson {
             JSONObject data = (JSONObject) jsonParser.parse(new FileReader(jsnoWithGraph));
             createVertex(graph, data);
             createEdges(graph, data);
-        } catch (IOException | ParseException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         return graph;
