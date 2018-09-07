@@ -40,5 +40,4 @@ hs_err_pid*
 
 .idea/
 out/production/classes/graphA.json
-src/test/
 !johnson.jar

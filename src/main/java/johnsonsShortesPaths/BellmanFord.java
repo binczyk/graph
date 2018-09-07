@@ -5,7 +5,7 @@ import org.jgrapht.Graph;
 import java.util.HashMap;
 import java.util.Map;
 
-class BellmanFord {
+public class BellmanFord {
 
     private static final String ADDITIONAL_VERTEX = "#";
     private Map<String, Double> distance = new HashMap<>();

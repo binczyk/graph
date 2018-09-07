@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-class Johnson {
+public class Johnson {
 
     private Dijkstra dijkstra;
     private BellmanFord bellmanFord = new BellmanFord();
@@ -70,7 +70,7 @@ class Johnson {
         dijkstra = new Dijkstra(graph);
         Map<String, DijkstraResult> waightFunction = new HashMap<>();
         for (String vertex : graph.vertexSet()) {
-            waightFunction.put(vertex, dijkstra.execte(vertex));
+            waightFunction.put(vertex, dijkstra.execute(vertex));
         }
         return waightFunction;
     }

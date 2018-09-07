@@ -5,7 +5,7 @@ import org.jgrapht.Graph;
 import java.util.ArrayList;
 import java.util.List;
 
-class Dijkstra {
+public class Dijkstra {
 
     private DijkstraResult dijkstraResult;
     private List<String> vertices = new ArrayList<>();
@@ -15,7 +15,7 @@ class Dijkstra {
         this.graph = graph;
     }
 
-    public DijkstraResult execte(String vertex) {
+    public DijkstraResult execute(String vertex) {
         dijkstraResult = new DijkstraResult();
         initAdditionals(graph, vertex);
         findPath(graph);
